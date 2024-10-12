@@ -9,7 +9,7 @@ type Counter struct {
 
 func NewCounter() *Counter {
 	return &Counter{
-		num: 0,
+		num: 1,
 		mu:  &sync.Mutex{},
 	}
 }

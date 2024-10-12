@@ -137,6 +137,7 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 	for len(s) != 0 {
 		lastElem := s[len(s)-1]
 		s2 = append(s2, lastElem)
+		fmt.Println(lastElem.val, lastElem.op, lastElem.id, lastElem.typ)
 
 		s = s[:len(s)-1]
 
@@ -169,8 +170,18 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 	}
 
 	for _, eq := range nb.equalities {
-		val1 := eq.n1.id
-		if eq.n1.val != eq.n2.val {
+		val1 := eq.n1.val
+		if v, ok := nb.m[eq.n1.id]; ok {
+			val1 = v.i
+		}
+
+		val2 := eq.n2.val
+		if v, ok := nb.m[eq.n2.id]; ok {
+			val2 = v.i
+		}
+
+		fmt.Println(val1, val2)
+		if val1 != val2 {
 			return false
 		}
 	}
