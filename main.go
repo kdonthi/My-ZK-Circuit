@@ -23,4 +23,18 @@ func main() {
 	})
 	fmt.Println(n.Verify(total))
 
+	// Example 2: f(a) = (a+1) / 8
+	//
+	// function f(a):
+	//     b = a + 1
+	//     c = b / 8
+	//     return c
+
+	//n2 := succinct.NewNodeBuilder()
+	//
+	//a := n2.Var()
+	//one := n2.Num(1)
+	//b := n2.Add(a, one)
+	//
+	//c := n2.Hint()
 }

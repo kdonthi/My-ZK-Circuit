@@ -17,7 +17,6 @@ const (
 	Number NodeType = iota
 	Operation
 	Variable
-	NoType
 )
 
 type Op int
@@ -25,15 +24,15 @@ type Op int
 const (
 	Add Op = iota
 	Mul
-	NoOp
 )
 
 type Node struct {
-	typ      NodeType
-	val      int
-	op       Op
-	children []*Node
-	id       int
+	typ       NodeType
+	val       float64
+	valFilled bool
+	op        Op
+	children  []*Node
+	id        int
 }
 
 func (n *Node) GetId() int {
@@ -41,7 +40,7 @@ func (n *Node) GetId() int {
 }
 
 type MaybeInt struct {
-	i int
+	i float64
 	b bool
 }
 
@@ -52,10 +51,11 @@ type Equalities struct {
 type NodeBuilder struct {
 	m          map[int]MaybeInt
 	equalities []Equalities
+	hint       []Hint
 }
 
-func NewNodeBuilder() NodeBuilder {
-	return NodeBuilder{
+func NewNodeBuilder() *NodeBuilder {
+	return &NodeBuilder{
 		m:          map[int]MaybeInt{},
 		equalities: make([]Equalities, 0),
 	}
@@ -68,31 +68,35 @@ func (nb *NodeBuilder) Var() *Node {
 	}
 
 	return &Node{
-		typ: Variable,
-		id:  id,
+		typ:       Variable,
+		id:        id,
+		valFilled: true,
 	}
 }
 
-func (nb *NodeBuilder) Num(n int) *Node {
+func (nb *NodeBuilder) Num(n float64) *Node {
 	return &Node{
-		typ: Number,
-		val: n,
+		typ:       Number,
+		val:       n,
+		valFilled: true,
 	}
 }
 
 func (nb *NodeBuilder) Add(n1, n2 *Node) *Node {
 	return &Node{
-		typ:      Operation,
-		op:       Add,
-		children: []*Node{n1, n2},
+		typ:       Operation,
+		op:        Add,
+		children:  []*Node{n1, n2},
+		valFilled: false,
 	}
 }
 
 func (nb *NodeBuilder) Mul(n1, n2 *Node) *Node {
 	return &Node{
-		typ:      Operation,
-		op:       Mul,
-		children: []*Node{n1, n2},
+		typ:       Operation,
+		op:        Mul,
+		children:  []*Node{n1, n2},
+		valFilled: false,
 	}
 }
 
@@ -103,14 +107,15 @@ func (nb *NodeBuilder) AssertEq(n1, n2 *Node) {
 	})
 }
 
-func (nb *NodeBuilder) Const(val int) *Node {
+func (nb *NodeBuilder) Const(val float64) *Node {
 	return &Node{
-		typ: Number,
-		val: val,
+		typ:       Number,
+		val:       val,
+		valFilled: true,
 	}
 }
 
-func (nb *NodeBuilder) FillNodes(m map[int]int) {
+func (nb *NodeBuilder) FillNodes(m map[int]float64) {
 	for v := range nb.m {
 		if val, ok := m[v]; ok {
 			nb.m[v] = MaybeInt{
@@ -124,7 +129,7 @@ func (nb *NodeBuilder) FillNodes(m map[int]int) {
 }
 
 func (nb *NodeBuilder) Verify(head *Node) bool {
-	for id, v := range nb.m {
+	for id, v := range nb.m { // TODO I don't knw if it makes sense to do MaybeInts?
 		if !v.b {
 			panic(fmt.Sprintf("not all variables filled, e.g. %v", id))
 		}
@@ -137,7 +142,6 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 	for len(s) != 0 {
 		lastElem := s[len(s)-1]
 		s2 = append(s2, lastElem)
-		fmt.Println(lastElem.val, lastElem.op, lastElem.id, lastElem.typ)
 
 		s = s[:len(s)-1]
 
@@ -180,11 +184,14 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 			val2 = v.i
 		}
 
-		fmt.Println(val1, val2)
 		if val1 != val2 {
 			return false
 		}
 	}
 
 	return true
+}
+
+func (nb *NodeBuilder) Hint() *HintBuilder {
+	return NewHint()
 }
