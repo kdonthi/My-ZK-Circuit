@@ -52,7 +52,7 @@ type Equalities struct {
 type NodeBuilder struct {
 	m          map[int]MaybeInt
 	equalities []Equalities
-	hint       []Hint
+	hints      map[int]Hint
 	h          *HintBuilder
 }
 
@@ -157,23 +157,53 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 		}
 	}
 
-	for len(s2) != 0 {
-		lastElem := s2[len(s2)-1]
-		s2 = s2[:len(s2)-1]
-		if lastElem.typ == Variable {
-			v := nb.m[lastElem.id]
-			lastElem.val = v.i
-		} else if lastElem.typ == Operation {
-			first := lastElem.children[0].val
-			second := lastElem.children[1].val
+	refill := []*Node{}
+	for {
+		for len(s2) != 0 {
+			lastElem := s2[len(s2)-1]
+			s2 = s2[:len(s2)-1]
+			if lastElem.typ == Variable {
+				v := nb.m[lastElem.id]
+				lastElem.val = v.i
+				lastElem.valFilled = true
+			} else if lastElem.typ == Operation {
+				node1 := lastElem.children[0]
+				node2 := lastElem.children[1]
 
-			switch lastElem.op {
-			case Add:
-				lastElem.val = first + second
-			case Mul:
-				lastElem.val = first * second
+				if !node1.valFilled || !node2.valFilled {
+					refill = append(refill, lastElem)
+					continue
+				}
+
+				first := node1.val
+				second := node2.val
+
+				switch lastElem.op {
+				case Add:
+					lastElem.val = first + second
+				case Mul:
+					lastElem.val = first * second
+				}
+			} else if lastElem.typ == Hinted {
+				if hint, ok := nb.hints[lastElem.id]; ok {
+					if val, ok := hint.Solve(nb.m); ok {
+						lastElem.val = val
+						lastElem.valFilled = true
+					} else {
+						refill = append(refill, lastElem)
+					}
+				} else {
+					panic("hint needed")
+				}
 			}
 		}
+
+		if len(refill) == 0 {
+			break
+		}
+
+		copy(s2, refill)
+		refill = []*Node{}
 	}
 
 	for _, eq := range nb.equalities {

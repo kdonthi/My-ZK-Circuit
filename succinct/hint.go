@@ -1,7 +1,6 @@
 package succinct
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -150,10 +149,10 @@ type Hint struct {
 }
 
 // solve with the map you were given
-func (h *Hint) Solve(m map[int]*Node) float64 {
-	for id, v := range h.equation.dependencies { // TODO I don't knw if it makes sense to do MaybeInts?
+func (h *Hint) Solve(m map[int]MaybeInt) (float64, bool) {
+	for _, v := range h.equation.dependencies { // TODO I don't knw if it makes sense to do MaybeInts?
 		if !v.valFilled {
-			panic(fmt.Sprintf("not all variables solved, e.g. %v", id))
+			return 0, false
 		}
 	}
 
@@ -181,7 +180,7 @@ func (h *Hint) Solve(m map[int]*Node) float64 {
 		s2 = s2[:len(s2)-1]
 		if lastElem.typ == Variable {
 			v := m[lastElem.id]
-			lastElem.val = v.val
+			lastElem.val = v.i
 		} else if lastElem.typ == Operation {
 			first := lastElem.children[0].val
 			second := lastElem.children[1].val
@@ -203,7 +202,7 @@ func (h *Hint) Solve(m map[int]*Node) float64 {
 		}
 	}
 
-	return h.equation.val
+	return h.equation.val, true
 }
 
 // hint should have a "Solve" function that allows it to have a true or false!
