@@ -17,6 +17,7 @@ const (
 	Number NodeType = iota
 	Operation
 	Variable
+	Hinted
 )
 
 type Op int
@@ -52,12 +53,14 @@ type NodeBuilder struct {
 	m          map[int]MaybeInt
 	equalities []Equalities
 	hint       []Hint
+	h          *HintBuilder
 }
 
 func NewNodeBuilder() *NodeBuilder {
 	return &NodeBuilder{
 		m:          map[int]MaybeInt{},
 		equalities: make([]Equalities, 0),
+		h:          NewHintBuilder(),
 	}
 }
 
@@ -193,5 +196,5 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 }
 
 func (nb *NodeBuilder) Hint() *HintBuilder {
-	return NewHint()
+	return nb.h
 }

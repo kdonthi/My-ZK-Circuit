@@ -23,9 +23,10 @@ const (
 type HintBuilder struct {
 	n                     *NodeBuilder
 	first, second, output *Node
+	hints                 []*HintNode
 }
 
-func NewHint() *HintBuilder {
+func NewHintBuilder() *HintBuilder {
 	return &HintBuilder{
 		n: NewNodeBuilder(),
 	}
@@ -127,10 +128,18 @@ func (h *HintBuilder) Sqrt(n1 *HintNode) *HintNode {
 	}
 }
 
-func (h *HintNode) Build(n *Node) *Hint {
+func (h *HintBuilder) Build(n *HintNode) *Node {
+	h.hints = append(h.hints, n)
+	return &Node{
+		typ:       Hinted,
+		valFilled: false,
+	}
+}
+
+func (h *HintBuilder) Equals(n1 *HintNode, n *Node) *Hint {
 	return &Hint{
 		output:   n, // TODO do we need this?
-		equation: h,
+		equation: n1,
 	}
 }
 
@@ -141,7 +150,7 @@ type Hint struct {
 }
 
 // solve with the map you were given
-func (h *Hint) Solve(m map[int]*Node) bool {
+func (h *Hint) Solve(m map[int]*Node) float64 {
 	for id, v := range h.equation.dependencies { // TODO I don't knw if it makes sense to do MaybeInts?
 		if !v.valFilled {
 			panic(fmt.Sprintf("not all variables solved, e.g. %v", id))
@@ -194,12 +203,15 @@ func (h *Hint) Solve(m map[int]*Node) bool {
 		}
 	}
 
-	return true
+	return h.equation.val
 }
 
 // hint should have a "Solve" function that allows it to have a true or false!
 // maybe to have a list that keeps track of the nodes we don't know the value of, and if the size doesn't change across iterations, we say it's an error?!!!
-func (h *Hint) Build(output *Node) *Hint {
-	h.output = output
-	return h
+func (h *Hint) Equals(n *Node) *Node {
+	h.output = n
+	return &Node{
+		typ:       Hinted,
+		valFilled: false,
+	}
 }
