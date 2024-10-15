@@ -2,6 +2,7 @@ package utils
 
 import "sync"
 
+// Counter keeps track of an incrementing integer that can be accessed from multiple threads
 type Counter struct {
 	mu  *sync.Mutex
 	num int

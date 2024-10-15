@@ -15,6 +15,7 @@ const (
 	Sqrt
 )
 
+// HintBuilder supports the operations to create a hint (use "Build" on created Hint to create a Node)
 type HintBuilder struct {
 	hints map[int]*HintNode
 }
@@ -28,24 +29,11 @@ func NewHintBuilder() *HintBuilder {
 type HintNode struct {
 	typ          NodeType
 	val          float64
-	wrappedNode  *Node
+	wrappedNode  *Node // underlying node for hinted values that depend on a real node
 	op           HintOp
 	children     []*HintNode
-	dependencies map[int]*Node
-	id           int
-}
-
-func mergeDeps(m1, m2 map[int]*Node) map[int]*Node {
-	m := map[int]*Node{}
-
-	for id, elem := range m1 {
-		m[id] = elem
-	}
-	for id, elem := range m2 {
-		m[id] = elem
-	}
-
-	return m
+	dependencies map[int]*Node // nodes this value depends on to be able to solve
+	solved       bool
 }
 
 func (h *HintBuilder) Val(n *Node) *HintNode {
@@ -96,6 +84,10 @@ func (h *HintBuilder) Mul(n1, n2 *HintNode) *HintNode {
 }
 
 func (h *HintBuilder) Div(n1, n2 *HintNode) *HintNode {
+	if n2.val == 0 {
+		panic("cannot divide by 0")
+	}
+
 	return &HintNode{
 		typ:          Operation,
 		op:           Division,
@@ -104,16 +96,10 @@ func (h *HintBuilder) Div(n1, n2 *HintNode) *HintNode {
 	}
 }
 
-func (h *HintBuilder) Square(n1 *HintNode) *HintNode {
-	return &HintNode{
-		typ:          Operation,
-		op:           Square,
-		children:     []*HintNode{n1, nil},
-		dependencies: n1.dependencies,
-	}
-}
-
 func (h *HintBuilder) Sqrt(n1 *HintNode) *HintNode {
+	if n1.val < 0 {
+		panic("cannot take the square root of a negative number (at least in this circuit :))")
+	}
 	return &HintNode{
 		typ:          Operation,
 		op:           Sqrt,
@@ -133,13 +119,9 @@ func (h *HintBuilder) Build(n *HintNode) *Node {
 	}
 }
 
-type Hint struct {
-	equation *HintNode
-}
-
-func (h *HintNode) Solve() (float64, bool) {
-	for _, v := range h.dependencies { // TODO I don't knw if it makes sense to do MaybeInts?
-		if !v.valFilled {
+func (h *HintNode) solve() (float64, bool) {
+	for _, v := range h.dependencies {
+		if !v.valFilled && v.typ != Hinted {
 			return 0, false
 		}
 	}
@@ -193,8 +175,30 @@ func (h *HintNode) Solve() (float64, bool) {
 			case Sqrt:
 				lastElem.val = math.Sqrt(first.val)
 			}
+		} else if lastElem.typ == Hinted {
+			if !lastElem.solved {
+				if val, ok := lastElem.solve(); ok {
+					lastElem.val = val
+					lastElem.solved = true
+				} else {
+					return 0, false
+				}
+			}
 		}
 	}
 
 	return h.val, true
+}
+
+func mergeDeps(m1, m2 map[int]*Node) map[int]*Node {
+	m := map[int]*Node{}
+
+	for id, elem := range m1 {
+		m[id] = elem
+	}
+	for id, elem := range m2 {
+		m[id] = elem
+	}
+
+	return m
 }

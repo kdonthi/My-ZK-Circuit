@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// c generates new ids for new nodes
 var c *utils.Counter
 
 func init() {
@@ -44,6 +45,7 @@ func (n *Node) GetVal() float64 {
 	return n.val
 }
 
+// MaybeInt is the alternative to using a float64 pointer
 type MaybeInt struct {
 	i float64
 	b bool
@@ -135,9 +137,9 @@ func (nb *NodeBuilder) FillNodes(m map[int]float64) {
 }
 
 func (nb *NodeBuilder) Verify(head *Node) bool {
-	for id, v := range nb.m { // TODO I don't knw if it makes sense to do MaybeInts?
+	for id, v := range nb.m {
 		if !v.b {
-			panic(fmt.Sprintf("not all variables filled, e.g. %v", id)) // TODO not all vars need to be filled?
+			panic(fmt.Sprintf("not all variables filled, e.g. %v", id))
 		}
 	}
 
@@ -198,7 +200,7 @@ func (nb *NodeBuilder) Solve(head *Node) {
 		}
 	}
 
-	refill := []*Node{}
+	var refill []*Node
 	for {
 		for len(s2) != 0 {
 			lastElem := s2[len(s2)-1]
@@ -229,7 +231,7 @@ func (nb *NodeBuilder) Solve(head *Node) {
 				lastElem.valFilled = true
 			} else if lastElem.typ == Hinted {
 				if hint, ok := nb.h.hints[lastElem.id]; ok {
-					if val, ok := hint.Solve(); ok {
+					if val, ok := hint.solve(); ok {
 						lastElem.val = val
 						lastElem.valFilled = true
 					} else {
