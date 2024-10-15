@@ -42,10 +42,10 @@ func main() {
 	c_times_eight := n2.Mul(c, eight)
 
 	n2.AssertEq(c_times_eight, b)
+	n2.AssertEq(c, n2.Const(0.23))
 
 	n2.FillNodes(map[int]float64{
 		a.GetId(): 1,
-		c.GetId(): 0.25,
 	})
 	fmt.Println(n2.Verify(b))
 	fmt.Println(c.GetVal(), a.GetVal(), b.GetVal())

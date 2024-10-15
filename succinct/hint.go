@@ -68,7 +68,7 @@ func (h *HintBuilder) Const(n float64) *HintNode {
 		typ:          Number,
 		val:          n,
 		dependencies: make(map[int]*Node),
-		children:     make([]*HintNode, 2),
+		children:     make([]*HintNode, 0),
 	}
 }
 
@@ -177,8 +177,8 @@ func (h *HintNode) Solve() (float64, bool) {
 		lastElem := s2[len(s2)-1]
 		s2 = s2[:len(s2)-1]
 		if lastElem.typ == Variable {
-			if !lastElem.wrappedNode.valFilled {
-
+			if lastElem.wrappedNode.valFilled {
+				lastElem.val = lastElem.wrappedNode.val
 			}
 		} else if lastElem.typ == Operation {
 			first := lastElem.children[0].val

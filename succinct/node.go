@@ -137,16 +137,17 @@ func (nb *NodeBuilder) FillNodes(m map[int]float64) {
 func (nb *NodeBuilder) Verify(head *Node) bool {
 	for id, v := range nb.m { // TODO I don't knw if it makes sense to do MaybeInts?
 		if !v.b {
-			panic(fmt.Sprintf("not all variables filled, e.g. %v", id))
+			panic(fmt.Sprintf("not all variables filled, e.g. %v", id)) // TODO not all vars need to be filled?
 		}
 	}
 
 	nb.Solve(head)
 	for _, eq := range nb.equalities {
 		nb.Solve(eq.n1)
-
 		val1 := float64(0)
 		if eq.n1.valFilled {
+			val1 = eq.n1.val
+		} else {
 			if v, ok := nb.m[eq.n1.id]; ok {
 				val1 = v.i
 			} else {
@@ -155,9 +156,10 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 		}
 
 		nb.Solve(eq.n2)
-
 		val2 := float64(0)
 		if eq.n2.valFilled {
+			val2 = eq.n2.val
+		} else {
 			if v, ok := nb.m[eq.n2.id]; ok {
 				val2 = v.i
 			} else {
