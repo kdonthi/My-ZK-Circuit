@@ -20,12 +20,13 @@ const (
 // BUT Hint: b = c - 2
 
 type HintBuilder struct {
-	first, second, output *Node
-	hints                 []*HintNode
+	hints map[int]*HintNode
 }
 
 func NewHintBuilder() *HintBuilder {
-	return &HintBuilder{}
+	return &HintBuilder{
+		hints: map[int]*HintNode{},
+	}
 }
 
 type HintNode struct {
@@ -126,22 +127,24 @@ func (h *HintBuilder) Sqrt(n1 *HintNode) *HintNode {
 }
 
 func (h *HintBuilder) Build(n *HintNode) *Node {
-	h.hints = append(h.hints, n)
+	id := c.GetNext()
+	h.hints[id] = n
+
 	return &Node{
 		typ:       Hinted,
 		valFilled: false,
+		id:        id,
 	}
 }
 
 // hint should have the node ids that it uses
 type Hint struct {
-	output   *Node
 	equation *HintNode
 }
 
 // solve with the map you were given
-func (h *Hint) Solve() (float64, bool) {
-	for _, v := range h.equation.dependencies { // TODO I don't knw if it makes sense to do MaybeInts?
+func (h *HintNode) Solve() (float64, bool) {
+	for _, v := range h.dependencies { // TODO I don't knw if it makes sense to do MaybeInts?
 		if !v.valFilled {
 			return 0, false
 		}
@@ -150,7 +153,7 @@ func (h *Hint) Solve() (float64, bool) {
 	var s []*HintNode
 	var s2 []*HintNode
 
-	s = append(s, h.equation)
+	s = append(s, h)
 	for len(s) != 0 {
 		lastElem := s[len(s)-1]
 		s2 = append(s2, lastElem)
@@ -161,8 +164,12 @@ func (h *Hint) Solve() (float64, bool) {
 			left := lastElem.children[0]
 			right := lastElem.children[1]
 
-			s = append(s, right)
-			s = append(s, left)
+			if left != nil {
+				s = append(s, left)
+			}
+			if right != nil {
+				s = append(s, right)
+			}
 		}
 	}
 
@@ -194,15 +201,15 @@ func (h *Hint) Solve() (float64, bool) {
 		}
 	}
 
-	return h.equation.val, true
+	return h.val, true
 }
 
 // hint should have a "Solve" function that allows it to have a true or false!
 // maybe to have a list that keeps track of the nodes we don't know the value of, and if the size doesn't change across iterations, we say it's an error?!!!
-func (h *Hint) Equals(n *Node) *Node {
-	h.output = n
-	return &Node{
-		typ:       Hinted,
-		valFilled: false,
-	}
-}
+//func (h *Hint) Equals(n *Node) *Node {
+//	h.output = n
+//	return &Node{
+//		typ:       Hinted,
+//		valFilled: false,
+//	}
+//}

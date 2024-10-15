@@ -56,7 +56,6 @@ type Equalities struct {
 type NodeBuilder struct {
 	m          map[int]MaybeInt
 	equalities []Equalities
-	hints      map[int]*Hint
 	h          *HintBuilder
 }
 
@@ -77,7 +76,7 @@ func (nb *NodeBuilder) Var() *Node {
 	return &Node{
 		typ:       Variable,
 		id:        id,
-		valFilled: true,
+		valFilled: false,
 	}
 }
 
@@ -182,10 +181,10 @@ func (nb *NodeBuilder) Solve(head *Node) {
 	for len(s) != 0 {
 		lastElem := s[len(s)-1]
 		s = s[:len(s)-1]
+
 		if lastElem.valFilled {
 			continue
 		}
-
 		s2 = append(s2, lastElem)
 
 		if len(lastElem.children) != 0 {
@@ -204,10 +203,12 @@ func (nb *NodeBuilder) Solve(head *Node) {
 			s2 = s2[:len(s2)-1]
 
 			if lastElem.typ == Variable {
+				fmt.Println(lastElem.val, "var")
 				v := nb.m[lastElem.id]
 				lastElem.val = v.i
 				lastElem.valFilled = true
 			} else if lastElem.typ == Operation {
+				fmt.Println(lastElem.op, "OP")
 				node1 := lastElem.children[0]
 				node2 := lastElem.children[1]
 
@@ -225,8 +226,9 @@ func (nb *NodeBuilder) Solve(head *Node) {
 				case Mul:
 					lastElem.val = first * second
 				}
+				lastElem.valFilled = true
 			} else if lastElem.typ == Hinted {
-				if hint, ok := nb.hints[lastElem.id]; ok {
+				if hint, ok := nb.h.hints[lastElem.id]; ok {
 					if val, ok := hint.Solve(); ok {
 						lastElem.val = val
 						lastElem.valFilled = true
@@ -243,7 +245,7 @@ func (nb *NodeBuilder) Solve(head *Node) {
 			break
 		}
 
-		copy(s2, refill)
+		s2 = refill
 		refill = []*Node{}
 	}
 }
