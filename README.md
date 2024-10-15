@@ -2,7 +2,7 @@
 
 This library allows users to create and verify a ZK circuit involving addition and multiplication, but also utilizing subtraction, square roots, and division using hints.
 
-This document will try to explain how to use the library to be able to verify equations (like have probably been wanting to your whole life).
+This document will try to explain how to use the library to be able to verify equations (like you have probably been wanting to your whole life!)
 
 Let's start with something really simple:
 `f(a) = x + 5`
