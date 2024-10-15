@@ -11,8 +11,8 @@ nb := succinct.NodeBuilder() // creates the builder instance
 
 x := nb.Var() // creates a variable you have to set later
 five := nb.Val(5) // creates a constant
-
 x_plus_five := nb.Add(x, five)
+
 nb.AssertEq(x_plus_five, n2.Const(6))
 nb.FillNodes(map[int]float64{
     x.GetId(): 1, // sets the variable you created earlier
@@ -33,14 +33,14 @@ h := nb.Hint()
 
 x := nb.Var()
 four := nb.Val(4)
-
 x_plus_four := nb.Add(x, four)
+
 hint := h.Sqrt(h.Val(x_plus_four)) // use h.Val() to convert a Node to a HintNode
 y := h.Build(hint) // use h.Build() to convert a HintNode to a Node
 
 y_squared := nb.Mul(y, y)
-nb.AssertEq(y_squared, x_plus_four)
 
+nb.AssertEq(y_squared, x_plus_four)
 nb.FillNodes(map[int]float64{
     x.GetId(): 1,
 })
