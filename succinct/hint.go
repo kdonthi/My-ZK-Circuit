@@ -181,22 +181,23 @@ func (h *HintNode) Solve() (float64, bool) {
 				lastElem.val = lastElem.wrappedNode.val
 			}
 		} else if lastElem.typ == Operation {
-			first := lastElem.children[0].val
-			second := lastElem.children[1].val
+			var first, second *HintNode
+			first = lastElem.children[0]
+			second = lastElem.children[1]
 
 			switch lastElem.op {
 			case Addition:
-				lastElem.val = first + second
+				lastElem.val = first.val + second.val
 			case Multiplication:
-				lastElem.val = first * second
+				lastElem.val = first.val * second.val
 			case Subtraction:
-				lastElem.val = first - second
+				lastElem.val = first.val - second.val
 			case Division:
-				lastElem.val = first / second
+				lastElem.val = first.val / second.val
 			case Square:
-				lastElem.val = first * first
+				lastElem.val = first.val * first.val
 			case Sqrt:
-				lastElem.val = math.Sqrt(first)
+				lastElem.val = math.Sqrt(first.val)
 			}
 		}
 	}
