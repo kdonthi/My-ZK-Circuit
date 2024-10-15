@@ -20,20 +20,18 @@ const (
 // BUT Hint: b = c - 2
 
 type HintBuilder struct {
-	n                     *NodeBuilder
 	first, second, output *Node
 	hints                 []*HintNode
 }
 
 func NewHintBuilder() *HintBuilder {
-	return &HintBuilder{
-		n: NewNodeBuilder(),
-	}
+	return &HintBuilder{}
 }
 
 type HintNode struct {
 	typ          NodeType
 	val          float64
+	wrappedNode  *Node
 	op           HintOp
 	children     []*HintNode
 	dependencies map[int]*Node
@@ -55,8 +53,8 @@ func mergeDeps(m1, m2 map[int]*Node) map[int]*Node {
 
 func (h *HintBuilder) Val(n *Node) *HintNode {
 	return &HintNode{
-		typ: Number,
-		val: n.val,
+		typ:         Variable,
+		wrappedNode: n,
 		dependencies: map[int]*Node{
 			n.id: n,
 		},
@@ -135,13 +133,6 @@ func (h *HintBuilder) Build(n *HintNode) *Node {
 	}
 }
 
-func (h *HintBuilder) Equals(n1 *HintNode, n *Node) *Hint {
-	return &Hint{
-		output:   n, // TODO do we need this?
-		equation: n1,
-	}
-}
-
 // hint should have the node ids that it uses
 type Hint struct {
 	output   *Node
@@ -149,7 +140,7 @@ type Hint struct {
 }
 
 // solve with the map you were given
-func (h *Hint) Solve(m map[int]MaybeInt) (float64, bool) {
+func (h *Hint) Solve() (float64, bool) {
 	for _, v := range h.equation.dependencies { // TODO I don't knw if it makes sense to do MaybeInts?
 		if !v.valFilled {
 			return 0, false
@@ -179,8 +170,9 @@ func (h *Hint) Solve(m map[int]MaybeInt) (float64, bool) {
 		lastElem := s2[len(s2)-1]
 		s2 = s2[:len(s2)-1]
 		if lastElem.typ == Variable {
-			v := m[lastElem.id]
-			lastElem.val = v.i
+			if !lastElem.wrappedNode.valFilled {
+
+			}
 		} else if lastElem.typ == Operation {
 			first := lastElem.children[0].val
 			second := lastElem.children[1].val

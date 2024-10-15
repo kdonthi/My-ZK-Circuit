@@ -40,6 +40,10 @@ func (n *Node) GetId() int {
 	return n.id
 }
 
+func (n *Node) GetVal() float64 {
+	return n.val
+}
+
 type MaybeInt struct {
 	i float64
 	b bool
@@ -52,7 +56,7 @@ type Equalities struct {
 type NodeBuilder struct {
 	m          map[int]MaybeInt
 	equalities []Equalities
-	hints      map[int]Hint
+	hints      map[int]*Hint
 	h          *HintBuilder
 }
 
@@ -138,15 +142,51 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 		}
 	}
 
+	nb.Solve(head)
+	for _, eq := range nb.equalities {
+		nb.Solve(eq.n1)
+
+		val1 := float64(0)
+		if eq.n1.valFilled {
+			if v, ok := nb.m[eq.n1.id]; ok {
+				val1 = v.i
+			} else {
+				return false
+			}
+		}
+
+		nb.Solve(eq.n2)
+
+		val2 := float64(0)
+		if eq.n2.valFilled {
+			if v, ok := nb.m[eq.n2.id]; ok {
+				val2 = v.i
+			} else {
+				return false
+			}
+		}
+
+		if val1 != val2 {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (nb *NodeBuilder) Solve(head *Node) {
 	var s []*Node
 	var s2 []*Node
 
 	s = append(s, head)
 	for len(s) != 0 {
 		lastElem := s[len(s)-1]
-		s2 = append(s2, lastElem)
-
 		s = s[:len(s)-1]
+		if lastElem.valFilled {
+			continue
+		}
+
+		s2 = append(s2, lastElem)
 
 		if len(lastElem.children) != 0 {
 			left := lastElem.children[0]
@@ -162,6 +202,7 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 		for len(s2) != 0 {
 			lastElem := s2[len(s2)-1]
 			s2 = s2[:len(s2)-1]
+
 			if lastElem.typ == Variable {
 				v := nb.m[lastElem.id]
 				lastElem.val = v.i
@@ -186,7 +227,7 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 				}
 			} else if lastElem.typ == Hinted {
 				if hint, ok := nb.hints[lastElem.id]; ok {
-					if val, ok := hint.Solve(nb.m); ok {
+					if val, ok := hint.Solve(); ok {
 						lastElem.val = val
 						lastElem.valFilled = true
 					} else {
@@ -205,24 +246,6 @@ func (nb *NodeBuilder) Verify(head *Node) bool {
 		copy(s2, refill)
 		refill = []*Node{}
 	}
-
-	for _, eq := range nb.equalities {
-		val1 := eq.n1.val
-		if v, ok := nb.m[eq.n1.id]; ok {
-			val1 = v.i
-		}
-
-		val2 := eq.n2.val
-		if v, ok := nb.m[eq.n2.id]; ok {
-			val2 = v.i
-		}
-
-		if val1 != val2 {
-			return false
-		}
-	}
-
-	return true
 }
 
 func (nb *NodeBuilder) Hint() *HintBuilder {

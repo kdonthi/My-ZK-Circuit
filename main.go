@@ -1,6 +1,9 @@
 package main
 
-import "awesomeProject/succinct"
+import (
+	"awesomeProject/succinct"
+	"fmt"
+)
 
 func main() {
 	//n := succinct.NewNodeBuilder()
@@ -34,9 +37,17 @@ func main() {
 	one := n2.Num(1)
 	b := n2.Add(a, one)
 
-	c := h2.Div(h2.Val(b), h2.Const(8)) // get a node
-
+	c := h2.Build(h2.Div(h2.Val(b), h2.Const(8))) // get a node through the n2!
 	eight := n2.Const(8)
 	c_times_eight := n2.Mul(c, eight)
 
+	n2.AssertEq(c_times_eight, b)
+
+	n2.FillNodes(map[int]float64{
+		a.GetId(): 1,
+		c.GetId(): 0.25,
+	})
+	fmt.Println(n2.Verify(b))
+	fmt.Println(c.GetVal(), a.GetVal(), b.GetVal())
+	// TODO add one more to the end?
 }
