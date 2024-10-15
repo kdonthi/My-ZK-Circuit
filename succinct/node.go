@@ -80,7 +80,7 @@ func (nb *NodeBuilder) Var() *Node {
 	}
 }
 
-func (nb *NodeBuilder) Num(n float64) *Node {
+func (nb *NodeBuilder) Val(n float64) *Node {
 	return &Node{
 		typ:       Number,
 		val:       n,
@@ -205,12 +205,10 @@ func (nb *NodeBuilder) Solve(head *Node) {
 			s2 = s2[:len(s2)-1]
 
 			if lastElem.typ == Variable {
-				fmt.Println(lastElem.val, "var")
 				v := nb.m[lastElem.id]
 				lastElem.val = v.i
 				lastElem.valFilled = true
 			} else if lastElem.typ == Operation {
-				fmt.Println(lastElem.op, "OP")
 				node1 := lastElem.children[0]
 				node2 := lastElem.children[1]
 

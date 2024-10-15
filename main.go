@@ -6,22 +6,19 @@ import (
 )
 
 func main() {
-	//n := succinct.NewNodeBuilder()
-	//
-	//x := n.Var()
-	//x_sq := n.Mul(x, x)
-	//five := n.Const(5)
-	//x_squared_plus_five := n.Add(x_sq, five)
-	//total := n.Add(x_squared_plus_five, x)
-	//
-	//y := n.Var()
-	//n.AssertEq(total, y)
-	//
-	//n.FillNodes(map[int]float64{
-	//	x.GetId(): 2,
-	//	y.GetId(): 11,
-	//})
-	//fmt.Println(n.Verify(total))
+	n := succinct.NewNodeBuilder()
+
+	x := n.Var()
+	x_sq := n.Mul(x, x)
+	five := n.Const(5)
+	x_squared_plus_five := n.Add(x_sq, five)
+	total := n.Add(x_squared_plus_five, x)
+
+	n.FillNodes(map[int]float64{
+		x.GetId(): 2,
+	})
+	n.AssertEq(total, n.Val(11))
+	fmt.Println(n.Verify(total))
 
 	//Example 2: f(a) = (a+1) / 8
 	//
@@ -34,7 +31,7 @@ func main() {
 	//h2 := n2.Hint()
 	//
 	//a := n2.Var()
-	//one := n2.Num(1)
+	//one := n2.Val(1)
 	//b := n2.Add(a, one)
 	//
 	//c := h2.Build(h2.Div(h2.Val(b), h2.Const(8))) // get a node through the n2!
@@ -54,21 +51,21 @@ func main() {
 	//
 	// Assume that x+7 is a perfect square (so x = 2 or 9, etc.).}
 
-	n3 := succinct.NewNodeBuilder()
-	h3 := n3.Hint()
-	x := n3.Var()
-	seven := n3.Const(7)
-
-	xPlusSeven := n3.Add(x, seven)
-	y := h3.Build(h3.Sqrt(h3.Val(xPlusSeven)))
-	y_squared := n3.Mul(y, y)
-	n3.AssertEq(xPlusSeven, y_squared)
-
-	n3.FillNodes(map[int]float64{
-		x.GetId(): 2,
-	})
-	fmt.Println(xPlusSeven)
-	n3.AssertEq(y, n3.Num(3))
-	fmt.Println(n3.Verify(xPlusSeven))
-	fmt.Println(x.GetVal(), y.GetVal(), xPlusSeven.GetVal(), y_squared.GetVal())
+	//n3 := succinct.NewNodeBuilder()
+	//h3 := n3.Hint()
+	//x := n3.Var()
+	//seven := n3.Const(7)
+	//
+	//xPlusSeven := n3.Add(x, seven)
+	//y := h3.Build(h3.Sqrt(h3.Val(xPlusSeven)))
+	//y_squared := n3.Mul(y, y)
+	//n3.AssertEq(xPlusSeven, y_squared)
+	//
+	//n3.FillNodes(map[int]float64{
+	//	x.GetId(): 2,
+	//})
+	//fmt.Println(xPlusSeven)
+	//n3.AssertEq(y, n3.Val(3))
+	//fmt.Println(n3.Verify(xPlusSeven))
+	//fmt.Println(x.GetVal(), y.GetVal(), xPlusSeven.GetVal(), y_squared.GetVal())
 }

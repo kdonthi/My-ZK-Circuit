@@ -15,10 +15,6 @@ const (
 	Sqrt
 )
 
-// c = a + 3
-// b = c - 2 => b + 2 = c
-// BUT Hint: b = c - 2
-
 type HintBuilder struct {
 	hints map[int]*HintNode
 }
@@ -137,12 +133,10 @@ func (h *HintBuilder) Build(n *HintNode) *Node {
 	}
 }
 
-// hint should have the node ids that it uses
 type Hint struct {
 	equation *HintNode
 }
 
-// solve with the map you were given
 func (h *HintNode) Solve() (float64, bool) {
 	for _, v := range h.dependencies { // TODO I don't knw if it makes sense to do MaybeInts?
 		if !v.valFilled {
@@ -204,13 +198,3 @@ func (h *HintNode) Solve() (float64, bool) {
 
 	return h.val, true
 }
-
-// hint should have a "Solve" function that allows it to have a true or false!
-// maybe to have a list that keeps track of the nodes we don't know the value of, and if the size doesn't change across iterations, we say it's an error?!!!
-//func (h *Hint) Equals(n *Node) *Node {
-//	h.output = n
-//	return &Node{
-//		typ:       Hinted,
-//		valFilled: false,
-//	}
-//}
