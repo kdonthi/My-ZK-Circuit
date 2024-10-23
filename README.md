@@ -1,4 +1,4 @@
-# Succinct ZK Circuit
+# ZK Circuit
 
 This library allows users to create and verify a ZK circuit involving addition and multiplication, but also utilizing subtraction, square roots, and division using hints.
 
